@@ -1,7 +1,7 @@
 Option Explicit
 ' Created by Andrew Lam
 ' https://github.com/awhlam/online_attendance_taker
-' Version 1.7 - 08/23/20
+' Version 1.8 - 08/24/20
 
 Function GetFolder() As String
     Dim fldr As FileDialog
@@ -29,7 +29,7 @@ Sub attendance()
     Dim numFilesImported As Long, numFilesDeleted As Long
 
     Set wbI = ThisWorkbook
-    Set wsI = wbI.Sheets("imported_data")
+    Set wsI = wbI.Sheets("Imported Data")
     numFilesImported = 0
     numFilesDeleted = 0
     
@@ -37,6 +37,7 @@ Sub attendance()
     
     'Clear previously imported data
     wsI.Columns(1).ClearContents
+    wsI.Columns(2).ClearContents
     
     'Prompt the user to select a folder
     If wbI.Sheets("Start Here").deleteFilesCheckbox.Value = True Then
@@ -45,7 +46,7 @@ Sub attendance()
         deleteFilesWarning = "The files will NOT be deleted after importing."
     End If
     
-    MsgBox ("Select the folder containing text files that you want to import." & vbCrLf & "The filenames are expected to be named <save-users-list-*.txt>." & vbCrLf & deleteFilesWarning)
+    MsgBox ("Select the folder that contains the text files you want to import." & vbCrLf & "Folder contents will not be shown, just select the folder itself." & vbCrLf & vbCrLf & "Only files with the name format save-users-list-*.txt will be imported." & vbCrLf & deleteFilesWarning)
     
     importFolderPath = GetFolder()
     fileName = Dir(importFolderPath & "\save-users-list-*.txt")
@@ -66,6 +67,8 @@ Sub attendance()
         
         'Copy the data from the text file to the workbook
         wbO.Sheets(1).Range(Cells(1, 1), Cells(lastSourceRow, 1)).Copy wsI.Cells(lastDestinationRow, 1)
+        wsI.Activate
+        ActiveSheet.Range(Cells(lastDestinationRow, 2), Cells(lastDestinationRow + lastSourceRow - 1, 2)).Value = importFolderPath & "\" & fileName
 
         'Close the file without saving
         wbO.Close SaveChanges:=False
@@ -81,7 +84,8 @@ Sub attendance()
     Wend
     
     'Show results to user
-    MsgBox (numFilesImported & " text files were imported." & vbCrLf & numFilesDeleted & " text files were deleted.")
+    Worksheets("Class Roster").Activate
+    MsgBox (numFilesImported & " text files were copied to the 'Imported Data' worksheet." & vbCrLf & numFilesDeleted & " text files were deleted." & vbCrLf & "The 'Class Roster' worksheet has been updated.")
     Application.ScreenUpdating = True
 
 End Sub
